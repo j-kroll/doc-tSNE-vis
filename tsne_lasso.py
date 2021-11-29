@@ -13,10 +13,8 @@ import seaborn as sns
 from sentence_transformers import SentenceTransformer
 from sklearn.manifold import TSNE
 import textwrap
-import warnings
 
 class SelectFromCollection:
-
     def __init__(self, ax, collection, is_first_cluster):
         self.ax = ax
         self.canvas = ax.figure.canvas
@@ -31,7 +29,7 @@ class SelectFromCollection:
         self.fc = np.tile(self.fc, (self.Npts, 1))
 
         self.fc[:] = self.colors[0]
-        self.collection.set_facecolors(self.fc)
+        self.collection.set_facecolors(self.fc) # TODO try out set_sizes() to not interfere with chapter color encoding
 
         self.lasso = None
         self.ind = []
@@ -62,27 +60,53 @@ class SelectFromCollection:
 
 def main():
 
+    lassoed_sentences_A = []
+    lassoed_dfs_A = []
+    lassoed_df_A = []
+
+    lassoed_sentences_B = []
+    lassoed_dfs_B = []
+    lassoed_df_B = []
+
     def accept(event):
+
         if event.key == "a":
             print("Selected A cluster:")
             print(selector1.xys[selector1.ind])
             selector1.disconnect(selector2)
             ax.set_title("Select B cluster...")
             fig.canvas.draw()
+            for tsne_coords in selector1.xys[selector1.ind]:
+                item_df = df.loc[df.tsne.apply(lambda tc: (tc==tsne_coords).all())]
+                lassoed_sentence = item_df.iloc[0].sent
+                lassoed_sentences_A.append(lassoed_sentence)
+                lassoed_dfs_A.append(item_df)
+            lassoed_df_A = pd.concat(lassoed_dfs_A, ignore_index=True)
+            print('\n'.join(lassoed_sentences_A))
+            print(lassoed_df_A)
+
         elif event.key == "b":
             print("Selected B cluster:")
             print(selector2.xys[selector2.ind])
             selector2.disconnect()
             ax.set_title("Selected 2 clusters!")
             fig.canvas.draw()
+            for tsne_coords in selector2.xys[selector2.ind]:
+                item_df = df.loc[df.tsne.apply(lambda tc: (tc==tsne_coords).all())]
+                lassoed_sentence = item_df.iloc[0].sent
+                lassoed_sentences_B.append(lassoed_sentence)
+                lassoed_dfs_B.append(item_df)
+            lassoed_df_B = pd.concat(lassoed_dfs_B, ignore_index=True)
+            print('\n'.join(lassoed_sentences_B))
+            print(lassoed_df_B)
+
         elif event.key == "f":
             print("Finished.")
             ax.set_title("Finished cluster selection (X to exit)")
             fig.canvas.draw()
+
         elif event.key == "x":
             plt.close("all")
-
-    warnings.filterwarnings("ignore")
 
     nltk.download("punkt")
 
