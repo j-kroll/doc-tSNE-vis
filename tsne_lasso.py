@@ -25,8 +25,7 @@ class SelectFromCollection:
         self.Npts = len(self.xys)
 
         self.fc = collection.get_facecolors()
-        self.colors = np.array([[0.6, 0.6, 0, 1], [0.7, 0.4, 1, 1], [0, 0.8, 0.8, 1]])
-        self.fc = np.tile(self.fc, (self.Npts, 1))
+        self.colors = np.array([[0.6, 0.6, 0, 1], [1, 0.4, 1, 1], [0, 0.8, 0.8, 1]])
 
         self.fc[:] = self.colors[0]
         self.collection.set_facecolors(self.fc) # TODO try out set_sizes() to not interfere with chapter color encoding
@@ -112,7 +111,7 @@ def main():
 
     f = open("sherlock.txt", "r")
     contents = f.read().replace("\n", " ")
-    sent_text = sent_tokenize(contents)[:400]
+    sent_text = sent_tokenize(contents)
     print("Read and tokenized sentences...")
     print(sent_text[:3])
     
@@ -120,7 +119,7 @@ def main():
     sentence_embeddings = model.encode(sent_text)
     print("Got high-dimensional sentence embeddings...")
     
-    tsne_emb = TSNE(n_components=2, perplexity=30.0, n_iter=250, verbose=1).fit_transform(sentence_embeddings) # TODO n_iter=1000
+    tsne_emb = TSNE(n_components=2, perplexity=30.0, n_iter=1000, verbose=1).fit_transform(sentence_embeddings)
     print("Calculated t-SNE embeddings...")
     print(len(sent_text))
     print(sentence_embeddings.shape)
@@ -138,17 +137,11 @@ def main():
     for index, s in enumerate(sent_text):
         color = colors[ch]
         label = "Ch. {} (n={})".format(str(ch).zfill(2), str(index).zfill(3))
-        data.append((tsne_emb[index], ch, sent_text[index], color, label))
+        data.append((tsne_emb[index], sentence_embeddings[index], ch, sent_text[index], color, label))
         new_ch = False
         if re.match("(.*( ){2,}[IVX]{1,}\.)|(^[IVX]{1,}\.)", s):
             new_ch = True
             ch += 1
-
-    print("\n----\n")
-    print(data[13])
-    print("\n")
-    print(data[44])
-    print("\n----\n")
     print(ch, "Chapter index")
     print(len(data), "sentence datapoints\n")
 
@@ -158,7 +151,8 @@ def main():
         ch_chunks.append(idx)
         idx += len(c)
 
-    df = pd.DataFrame(data, columns=["tsne", "ch", "sent", "color", "label"])
+    df = pd.DataFrame(data, columns=["tsne", "high_dim", "ch", "sent", "color", "label"])
+    print(df.info())
 
     fig, ax = plt.subplots()
     fig.set_dpi(150)
