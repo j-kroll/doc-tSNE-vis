@@ -9,6 +9,7 @@ from nltk import sent_tokenize, word_tokenize
 import numpy as np
 import pandas as pd
 import re
+from scipy.spatial import distance
 import seaborn as sns
 from sentence_transformers import SentenceTransformer
 from sklearn.manifold import TSNE
@@ -67,6 +68,32 @@ def main():
     lassoed_dfs_B = []
     lassoed_df_B = []
 
+    def get_adj_matrix(lassoed_df, all_df):
+        num_data = len(lassoed_df)
+        adj_matrix = np.empty(shape=(num_data,num_data))
+        max_dist = -1
+        max_uv = None
+        min_dist = 1000
+        min_uv = None
+        for u in range(num_data):
+            for v in range(num_data):
+                dist = distance.euclidean(lassoed_df.iloc[u].high_dim, lassoed_df.iloc[v].high_dim)
+                adj_matrix[u][v] = dist
+                if dist < min_dist and dist > 0:
+                    min_dist = dist
+                    min_uv = (u,v)
+                if dist > max_dist:
+                    max_dist = dist
+                    max_uv = (u,v)
+        print("Max dist {}: {}".format(max_uv, max_dist))
+        print(lassoed_df.iloc[max_uv[0]].sent)
+        print(lassoed_df.iloc[max_uv[1]].sent)
+        print("Min dist {}: {}".format(min_uv, min_dist))
+        print(lassoed_df.iloc[min_uv[0]].sent)
+        print(lassoed_df.iloc[min_uv[1]].sent)
+        sc = ax.scatter(*zip(*lassoed_df.iloc[[max_uv[0], max_uv[1], min_uv[0], min_uv[1]], :]["tsne"]))
+        return adj_matrix
+
     def accept(event):
 
         if event.key == "a":
@@ -82,7 +109,7 @@ def main():
                 lassoed_dfs_A.append(item_df)
             lassoed_df_A = pd.concat(lassoed_dfs_A, ignore_index=True)
             print('\n'.join(lassoed_sentences_A))
-            print(lassoed_df_A)
+            print(get_adj_matrix(lassoed_df_A, df))
 
         elif event.key == "b":
             print("Selected B cluster:")
@@ -97,7 +124,7 @@ def main():
                 lassoed_dfs_B.append(item_df)
             lassoed_df_B = pd.concat(lassoed_dfs_B, ignore_index=True)
             print('\n'.join(lassoed_sentences_B))
-            print(lassoed_df_B)
+            print(get_adj_matrix(lassoed_df_B, df))
 
         elif event.key == "f":
             print("Finished.")
