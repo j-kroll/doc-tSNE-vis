@@ -68,7 +68,7 @@ def main():
     lassoed_dfs_B = []
     lassoed_df_B = []
 
-    def get_adj_matrix(lassoed_df, all_df):
+    def get_adj_matrix(lassoed_df, all_df, color):
         num_data = len(lassoed_df)
         adj_matrix = np.empty(shape=(num_data,num_data))
         max_dist = -1
@@ -91,7 +91,9 @@ def main():
         print("Min dist {}: {}".format(min_uv, min_dist))
         print(lassoed_df.iloc[min_uv[0]].sent)
         print(lassoed_df.iloc[min_uv[1]].sent)
-        sc = ax.scatter(*zip(*lassoed_df.iloc[[max_uv[0], max_uv[1], min_uv[0], min_uv[1]], :]["tsne"]))
+        color_arr = np.tile(color,(4,1,1))
+        sc2 = ax2.scatter(*zip(*lassoed_df.iloc[[max_uv[0], max_uv[1], min_uv[0], min_uv[1]], :]["tsne"]), c=color_arr, s=8)
+        plt.show()
         return adj_matrix
 
     def accept(event):
@@ -100,7 +102,7 @@ def main():
             print("Selected A cluster:")
             print(selector1.xys[selector1.ind])
             selector1.disconnect(selector2)
-            ax.set_title("Select B cluster...")
+            ax1.set_title("Select B cluster...")
             fig.canvas.draw()
             for tsne_coords in selector1.xys[selector1.ind]:
                 item_df = df.loc[df.tsne.apply(lambda tc: (tc==tsne_coords).all())]
@@ -109,13 +111,13 @@ def main():
                 lassoed_dfs_A.append(item_df)
             lassoed_df_A = pd.concat(lassoed_dfs_A, ignore_index=True)
             print('\n'.join(lassoed_sentences_A))
-            print(get_adj_matrix(lassoed_df_A, df))
+            print(get_adj_matrix(lassoed_df_A, df, selector1.colors[1]))
 
         elif event.key == "b":
             print("Selected B cluster:")
             print(selector2.xys[selector2.ind])
             selector2.disconnect()
-            ax.set_title("Selected 2 clusters!")
+            ax1.set_title("Selected 2 clusters!")
             fig.canvas.draw()
             for tsne_coords in selector2.xys[selector2.ind]:
                 item_df = df.loc[df.tsne.apply(lambda tc: (tc==tsne_coords).all())]
@@ -124,11 +126,11 @@ def main():
                 lassoed_dfs_B.append(item_df)
             lassoed_df_B = pd.concat(lassoed_dfs_B, ignore_index=True)
             print('\n'.join(lassoed_sentences_B))
-            print(get_adj_matrix(lassoed_df_B, df))
+            print(get_adj_matrix(lassoed_df_B, df, selector2.colors[2]))
 
         elif event.key == "f":
             print("Finished.")
-            ax.set_title("Finished cluster selection (X to exit)")
+            ax1.set_title("Finished cluster selection (X to exit)")
             fig.canvas.draw()
 
         elif event.key == "x":
@@ -181,16 +183,20 @@ def main():
     df = pd.DataFrame(data, columns=["tsne", "high_dim", "ch", "sent", "color", "label"])
     print(df.info())
 
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    grid = plt.GridSpec(2, 2)
+    ax1 = plt.subplot(grid[0, 0])
+    ax2 = plt.subplot(grid[0, 1])
+    ax3 = plt.subplot(grid[1, :])
     fig.set_dpi(150)
     fig.canvas.mpl_connect("key_press_event", accept)
 
-    sc = ax.scatter(*zip(*df["tsne"]), c=df.color, s=8) #, label=df.label) # TODO add label/legend
+    sc = ax1.scatter(*zip(*df["tsne"]), c=df.color, s=8) #, label=df.label) # TODO add label/legend
 
-    selector1 = SelectFromCollection(ax, sc, True)
-    selector2 = SelectFromCollection(ax, sc, False)
+    selector1 = SelectFromCollection(ax1, sc, True)
+    selector2 = SelectFromCollection(ax1, sc, False)
 
-    selector1.activate(ax)
+    selector1.activate(ax1)
 
     cursor = mplcursors.cursor(hover=True)
     cursor.connect("add", lambda sel: sel.annotation.set_text(
@@ -199,7 +205,7 @@ def main():
         )
     ))
 
-    ax.set_title("Select A cluster...")
+    ax1.set_title("Select A cluster...")
 
     plt.savefig("tsne_chapters_lasso.png")
     plt.show()
