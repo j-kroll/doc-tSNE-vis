@@ -1,6 +1,7 @@
 #pip3 install -qU sentence-transformers bioinfokit mplcursors
 
 from matplotlib import pyplot as plt
+import matplotlib.ticker as ticker
 from matplotlib.widgets import LassoSelector
 from matplotlib.path import Path
 import mplcursors
@@ -68,7 +69,7 @@ def main():
     lassoed_dfs_B = []
     lassoed_df_B = []
 
-    def get_adj_matrix(lassoed_df, all_df, color):
+    def get_adj_matrix(lassoed_df, all_df, color, cluster_ax):
         num_data = len(lassoed_df)
         adj_matrix = np.empty(shape=(num_data,num_data))
         max_dist = -1
@@ -91,8 +92,11 @@ def main():
         print("Min dist {}: {}".format(min_uv, min_dist))
         print(lassoed_df.iloc[min_uv[0]].sent)
         print(lassoed_df.iloc[min_uv[1]].sent)
-        color_arr = np.tile(color,(4,1,1))
-        sc2 = ax2.scatter(*zip(*lassoed_df.iloc[[max_uv[0], max_uv[1], min_uv[0], min_uv[1]], :]["tsne"]), c=color_arr, s=8)
+        color_arr = np.tile(color,(lassoed_df.shape[0],1,1))
+        cluster_sc = cluster_ax.scatter(*zip(*lassoed_df["tsne"]), c=color_arr, s=8)
+        cluster_sc = cluster_ax.scatter(*zip(*lassoed_df.iloc[[max_uv[0], max_uv[1], min_uv[0], min_uv[1]], :]["tsne"]), c="black", s=10)
+        line_plt = ax4.scatter([0,1,4,5,7,9,10], [2,2,2,2,2,2,2], c="black", s=12)
+        line_plt = ax4.scatter([2,4,6,8,12,15], [4,4,4,4,4,4], c="green", s=12)
         plt.show()
         return adj_matrix
 
@@ -102,7 +106,7 @@ def main():
             print("Selected A cluster:")
             print(selector1.xys[selector1.ind])
             selector1.disconnect(selector2)
-            ax1.set_title("Select B cluster...")
+            fig.suptitle("Select B cluster...")
             fig.canvas.draw()
             for tsne_coords in selector1.xys[selector1.ind]:
                 item_df = df.loc[df.tsne.apply(lambda tc: (tc==tsne_coords).all())]
@@ -110,14 +114,14 @@ def main():
                 lassoed_sentences_A.append(lassoed_sentence)
                 lassoed_dfs_A.append(item_df)
             lassoed_df_A = pd.concat(lassoed_dfs_A, ignore_index=True)
-            print('\n'.join(lassoed_sentences_A))
-            print(get_adj_matrix(lassoed_df_A, df, selector1.colors[1]))
+            print("\n".join(lassoed_sentences_A))
+            print(get_adj_matrix(lassoed_df_A, df, selector1.colors[1], ax2))
 
         elif event.key == "b":
             print("Selected B cluster:")
             print(selector2.xys[selector2.ind])
             selector2.disconnect()
-            ax1.set_title("Selected 2 clusters!")
+            fig.suptitle("Selected 2 clusters!")
             fig.canvas.draw()
             for tsne_coords in selector2.xys[selector2.ind]:
                 item_df = df.loc[df.tsne.apply(lambda tc: (tc==tsne_coords).all())]
@@ -125,12 +129,12 @@ def main():
                 lassoed_sentences_B.append(lassoed_sentence)
                 lassoed_dfs_B.append(item_df)
             lassoed_df_B = pd.concat(lassoed_dfs_B, ignore_index=True)
-            print('\n'.join(lassoed_sentences_B))
-            print(get_adj_matrix(lassoed_df_B, df, selector2.colors[2]))
+            print("\n".join(lassoed_sentences_B))
+            print(get_adj_matrix(lassoed_df_B, df, selector2.colors[2], ax3))
 
         elif event.key == "f":
             print("Finished.")
-            ax1.set_title("Finished cluster selection (X to exit)")
+            fig.suptitle("Finished cluster selection (X to exit)")
             fig.canvas.draw()
 
         elif event.key == "x":
@@ -184,12 +188,22 @@ def main():
     print(df.info())
 
     fig = plt.figure()
-    grid = plt.GridSpec(2, 2)
-    ax1 = plt.subplot(grid[0, 0])
-    ax2 = plt.subplot(grid[0, 1])
-    ax3 = plt.subplot(grid[1, :])
+    grid = plt.GridSpec(3, 3)
+    ax1 = plt.subplot(grid[0:2, 0])
+    ax2 = plt.subplot(grid[0:2, 1])
+    ax3 = plt.subplot(grid[0:2, 2])
+    ax4 = plt.subplot(grid[2, :])
     fig.set_dpi(150)
     fig.canvas.mpl_connect("key_press_event", accept)
+
+    ax4.yaxis.set_major_locator(ticker.NullLocator())
+    ax4.xaxis.set_ticks_position("bottom")
+    ax4.tick_params(which="major", width=1.00)
+    ax4.tick_params(which="major", length=5)
+    ax4.tick_params(which="minor", width=0.75)
+    ax4.tick_params(which="minor", length=2.5)
+    ax4.set_ylim(0, 5)
+    ax4.patch.set_alpha(0.0)
 
     sc = ax1.scatter(*zip(*df["tsne"]), c=df.color, s=8) #, label=df.label) # TODO add label/legend
 
@@ -205,7 +219,7 @@ def main():
         )
     ))
 
-    ax1.set_title("Select A cluster...")
+    fig.suptitle("Select A cluster...")
 
     plt.savefig("tsne_chapters_lasso.png")
     plt.show()
