@@ -94,9 +94,16 @@ def main():
         print(lassoed_df.iloc[min_uv[1]].sent)
         color_arr = np.tile(color,(lassoed_df.shape[0],1,1))
         cluster_sc = cluster_ax.scatter(*zip(*lassoed_df["tsne"]), c=color_arr, s=8)
-        cluster_sc = cluster_ax.scatter(*zip(*lassoed_df.iloc[[max_uv[0], max_uv[1], min_uv[0], min_uv[1]], :]["tsne"]), c="black", s=10)
+        # cluster_sc = cluster_ax.scatter(*zip(*lassoed_df.iloc[[min_uv[0], min_uv[1]], :]["tsne"]), c="green", s=10, marker="^")
+        # cluster_sc = cluster_ax.scatter(*zip(*lassoed_df.iloc[[max_uv[0], max_uv[1]], :]["tsne"]), c="black", s=10, marker="s")
         line_plt = ax4.scatter([0,1,4,5,7,9,10], [2,2,2,2,2,2,2], c="black", s=12)
         line_plt = ax4.scatter([2,4,6,8,12,15], [4,4,4,4,4,4], c="green", s=12)
+        cursor_sc = mplcursors.cursor(cluster_ax, hover=True)
+        cursor_sc.connect("add", lambda sel: sel.annotation.set_text(
+            textwrap.fill(
+                lassoed_df["sent"][sel.index], 20
+            )
+        ))
         plt.show()
         return adj_matrix
 
@@ -113,6 +120,7 @@ def main():
                 lassoed_sentence = item_df.iloc[0].sent
                 lassoed_sentences_A.append(lassoed_sentence)
                 lassoed_dfs_A.append(item_df)
+                print(item_df.sent)
             lassoed_df_A = pd.concat(lassoed_dfs_A, ignore_index=True)
             print("\n".join(lassoed_sentences_A))
             print(get_adj_matrix(lassoed_df_A, df, selector1.colors[1], ax2))
@@ -212,7 +220,7 @@ def main():
 
     selector1.activate(ax1)
 
-    cursor = mplcursors.cursor(hover=True)
+    cursor = mplcursors.cursor(ax1, hover=True)
     cursor.connect("add", lambda sel: sel.annotation.set_text(
         textwrap.fill(
             df["sent"][sel.index], 20
