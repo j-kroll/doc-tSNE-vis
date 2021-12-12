@@ -69,7 +69,7 @@ def main():
     lassoed_dfs_B = []
     lassoed_df_B = []
 
-    def get_adj_matrix(lassoed_df, all_df, color, cluster_ax):
+    def get_adj_matrix(lassoed_df, all_df, color, cluster_ax, line_ax):
         num_data = len(lassoed_df)
         adj_matrix = np.empty(shape=(num_data,num_data))
         max_dist = -1
@@ -94,12 +94,25 @@ def main():
         print(lassoed_df.iloc[min_uv[1]].sent)
         color_arr = np.tile(color,(lassoed_df.shape[0],1,1))
         cluster_sc = cluster_ax.scatter(*zip(*lassoed_df["tsne"]), c=color_arr, s=8)
-        # cluster_sc = cluster_ax.scatter(*zip(*lassoed_df.iloc[[min_uv[0], min_uv[1]], :]["tsne"]), c="green", s=10, marker="^")
-        # cluster_sc = cluster_ax.scatter(*zip(*lassoed_df.iloc[[max_uv[0], max_uv[1]], :]["tsne"]), c="black", s=10, marker="s")
-        line_plt = ax4.scatter([0,1,4,5,7,9,10], [2,2,2,2,2,2,2], c="black", s=12)
-        line_plt = ax4.scatter([2,4,6,8,12,15], [4,4,4,4,4,4], c="green", s=12)
-        cursor_sc = mplcursors.cursor(cluster_ax, hover=True)
+        centroid_high_dim = np.mean(lassoed_df["high_dim"], axis=0)
+        height = 0
+        line_ax.scatter(*zip([0, height]), c="red", s=12) # TODO fix plotting centroid at x=0
+        centroid_dists = []
+        for i in range(len(lassoed_df)):
+            p = lassoed_df.iloc[i]
+            c_pt = np.tile(color,(1,1,1))
+            dist_from_centroid = [distance.euclidean(p.high_dim, centroid_high_dim), height]
+            centroid_dists.append(dist_from_centroid)
+        lassoed_df["dist_from_centroid"] = centroid_dists
+        line_ax.scatter(*zip(*lassoed_df["dist_from_centroid"]), c=color_arr, s=8)
+        cursor_sc = mplcursors.cursor(cluster_ax, hover=2)
         cursor_sc.connect("add", lambda sel: sel.annotation.set_text(
+            textwrap.fill(
+                lassoed_df["sent"][sel.index], 20
+            )
+        ))
+        cursor_lineplot = mplcursors.cursor(line_ax, hover=2)
+        cursor_lineplot.connect("add", lambda sel: sel.annotation.set_text(
             textwrap.fill(
                 lassoed_df["sent"][sel.index], 20
             )
@@ -123,7 +136,7 @@ def main():
                 print(item_df.sent)
             lassoed_df_A = pd.concat(lassoed_dfs_A, ignore_index=True)
             print("\n".join(lassoed_sentences_A))
-            print(get_adj_matrix(lassoed_df_A, df, selector1.colors[1], ax2))
+            print(get_adj_matrix(lassoed_df_A, df, selector1.colors[1], ax2, ax4))
 
         elif event.key == "b":
             print("Selected B cluster:")
@@ -138,7 +151,7 @@ def main():
                 lassoed_dfs_B.append(item_df)
             lassoed_df_B = pd.concat(lassoed_dfs_B, ignore_index=True)
             print("\n".join(lassoed_sentences_B))
-            print(get_adj_matrix(lassoed_df_B, df, selector2.colors[2], ax3))
+            print(get_adj_matrix(lassoed_df_B, df, selector2.colors[2], ax3, ax5))
 
         elif event.key == "f":
             print("Finished.")
@@ -196,22 +209,18 @@ def main():
     print(df.info())
 
     fig = plt.figure()
-    grid = plt.GridSpec(3, 3)
-    ax1 = plt.subplot(grid[0:2, 0])
-    ax2 = plt.subplot(grid[0:2, 1])
-    ax3 = plt.subplot(grid[0:2, 2])
-    ax4 = plt.subplot(grid[2, :])
+    grid = plt.GridSpec(5, 4)
+    ax1 = plt.subplot(grid[:, 0:2])
+    ax2 = plt.subplot(grid[0:3, 2])
+    ax3 = plt.subplot(grid[0:3, 3])
+    ax4 = plt.subplot(grid[3, 2:])
+    ax5 = plt.subplot(grid[4, 2:], sharex=ax4)
     fig.set_dpi(150)
     fig.canvas.mpl_connect("key_press_event", accept)
 
-    ax4.yaxis.set_major_locator(ticker.NullLocator())
-    ax4.xaxis.set_ticks_position("bottom")
-    ax4.tick_params(which="major", width=1.00)
-    ax4.tick_params(which="major", length=5)
-    ax4.tick_params(which="minor", width=0.75)
-    ax4.tick_params(which="minor", length=2.5)
-    ax4.set_ylim(0, 5)
-    ax4.patch.set_alpha(0.0)
+    ax4.get_xaxis().set_visible(False)
+    ax4.get_yaxis().set_visible(False)
+    ax5.get_yaxis().set_visible(False)
 
     sc = ax1.scatter(*zip(*df["tsne"]), c=df.color, s=8) #, label=df.label) # TODO add label/legend
 
@@ -220,7 +229,7 @@ def main():
 
     selector1.activate(ax1)
 
-    cursor = mplcursors.cursor(ax1, hover=True)
+    cursor = mplcursors.cursor(ax1, hover=2)
     cursor.connect("add", lambda sel: sel.annotation.set_text(
         textwrap.fill(
             df["sent"][sel.index], 20
