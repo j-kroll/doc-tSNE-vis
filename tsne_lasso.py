@@ -94,9 +94,13 @@ def main():
         print(lassoed_df.iloc[min_uv[1]].sent)
         color_arr = np.tile(color,(lassoed_df.shape[0],1,1))
         cluster_sc = cluster_ax.scatter(*zip(*lassoed_df["tsne"]), c=color_arr, s=8)
+        cluster_ax.scatter(lassoed_df.iloc[min_uv[0]]["tsne"][0], lassoed_df.iloc[min_uv[0]]["tsne"][1], edgecolors=np.array([.1,.5,.15,1]), facecolors="None", s=40)
+        cluster_ax.scatter(lassoed_df.iloc[min_uv[1]]["tsne"][0], lassoed_df.iloc[min_uv[1]]["tsne"][1], edgecolors=np.array([.1,.5,.15,1]), facecolors="None", s=40)
+        cluster_ax.scatter(lassoed_df.iloc[max_uv[0]]["tsne"][0], lassoed_df.iloc[max_uv[0]]["tsne"][1], edgecolors=np.array([1,0,0,1]), facecolors="None", s=80)
+        cluster_ax.scatter(lassoed_df.iloc[max_uv[1]]["tsne"][0], lassoed_df.iloc[max_uv[1]]["tsne"][1], edgecolors=np.array([1,0,0,1]), facecolors="None", s=80)
         centroid_high_dim = np.mean(lassoed_df["high_dim"], axis=0)
         height = 0
-        line_ax.scatter(*zip([0, height]), c="red", s=12) # TODO fix plotting centroid at x=0
+        # line_ax.scatter([0], [height], c=np.array([1,0,0,1]), s=12) # TODO fix plotting centroid at x=0
         centroid_dists = []
         for i in range(len(lassoed_df)):
             p = lassoed_df.iloc[i]
@@ -164,6 +168,10 @@ def main():
     nltk.download("punkt")
 
     f = open("sherlock.txt", "r")
+    # f = open("candide.txt", "r")
+    # f = open("alice.txt", "r")
+    # f = open("jane_eyre.txt", "r")
+    # f = open("grimm.txt", "r")
     contents = f.read().replace("\n", " ")
     sent_text = sent_tokenize(contents)
     print("Read and tokenized sentences...")
@@ -215,6 +223,7 @@ def main():
     ax3 = plt.subplot(grid[0:3, 3])
     ax4 = plt.subplot(grid[3, 2:])
     ax5 = plt.subplot(grid[4, 2:], sharex=ax4)
+
     fig.set_dpi(150)
     fig.canvas.mpl_connect("key_press_event", accept)
 
