@@ -149,15 +149,16 @@ def main():
             fig.canvas.draw()
 
         elif event.key == "x":
+            plt.savefig("cluster_comparison.png")
             plt.close("all")
 
     nltk.download("punkt")
 
-    f = open("sherlock.txt", "r")
-    # f = open("candide.txt", "r")
-    # f = open("alice.txt", "r")
-    # f = open("jane_eyre.txt", "r")
-    # f = open("grimm.txt", "r")
+    f = open("data/sherlock.txt", "r")
+    # f = open("data/candide.txt", "r")
+    # f = open("data/alice.txt", "r")
+    # f = open("data/jane_eyre.txt", "r")
+    # f = open("data/grimm.txt", "r")
     contents = f.read().replace("\n", " ")
     sent_text = sent_tokenize(contents)
     print("Read and tokenized sentences...")
@@ -207,7 +208,6 @@ def main():
 
     fig.suptitle("Select A cluster...")
 
-    plt.savefig("tsne_chapters_lasso.png")
     plt.show()
 
 if __name__ == "__main__":

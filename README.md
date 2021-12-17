@@ -37,7 +37,7 @@ scikit-learn
 Either use one of the provided text files, or use your own text file. Provide the filename in line 156.
 
 ```
-f = open("{your-text-file}.txt", "r")
+f = open("data/{your-text-file}.txt", "r")
  ```
 
 ### Run script
