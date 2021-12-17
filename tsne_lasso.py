@@ -89,10 +89,6 @@ def main():
         print(lassoed_df.iloc[min_uv[1]].sent)
         color_arr = np.tile(color,(lassoed_df.shape[0],1,1))
         cluster_sc = cluster_ax.scatter(*zip(*lassoed_df["tsne"]), c=color_arr, s=8)
-        cluster_ax.scatter(lassoed_df.iloc[min_uv[0]]["tsne"][0], lassoed_df.iloc[min_uv[0]]["tsne"][1], edgecolors=np.array([.1,.5,.15,1]), facecolors="None", s=40)
-        cluster_ax.scatter(lassoed_df.iloc[min_uv[1]]["tsne"][0], lassoed_df.iloc[min_uv[1]]["tsne"][1], edgecolors=np.array([.1,.5,.15,1]), facecolors="None", s=40)
-        cluster_ax.scatter(lassoed_df.iloc[max_uv[0]]["tsne"][0], lassoed_df.iloc[max_uv[0]]["tsne"][1], edgecolors=np.array([1,0,0,1]), facecolors="None", s=80)
-        cluster_ax.scatter(lassoed_df.iloc[max_uv[1]]["tsne"][0], lassoed_df.iloc[max_uv[1]]["tsne"][1], edgecolors=np.array([1,0,0,1]), facecolors="None", s=80)
         centroid_high_dim = np.mean(lassoed_df["high_dim"], axis=0)
         height = 0
         centroid_dists = []
@@ -104,17 +100,13 @@ def main():
         lassoed_df["dist_from_centroid"] = centroid_dists
         line_ax.scatter(*zip(*lassoed_df["dist_from_centroid"]), c=color_arr, s=8)
         cursor_sc = mplcursors.cursor(cluster_ax, hover=2)
-        cursor_sc.connect("add", lambda sel: sel.annotation.set_text(
-            textwrap.fill(
-                lassoed_df["sent"][sel.index], 20
-            )
-        ))
+        cursor_sc.connect("add", lambda sel: sel.annotation.set_text(textwrap.fill(lassoed_df["sent"][sel.index], 20)))
+        cluster_ax.scatter(lassoed_df.iloc[min_uv[0]]["tsne"][0], lassoed_df.iloc[min_uv[0]]["tsne"][1], edgecolors=np.array([.1,.5,.15,1]), facecolors="None", s=40)
+        cluster_ax.scatter(lassoed_df.iloc[min_uv[1]]["tsne"][0], lassoed_df.iloc[min_uv[1]]["tsne"][1], edgecolors=np.array([.1,.5,.15,1]), facecolors="None", s=40)
+        cluster_ax.scatter(lassoed_df.iloc[max_uv[0]]["tsne"][0], lassoed_df.iloc[max_uv[0]]["tsne"][1], edgecolors=np.array([1,0,0,1]), facecolors="None", s=80)
+        cluster_ax.scatter(lassoed_df.iloc[max_uv[1]]["tsne"][0], lassoed_df.iloc[max_uv[1]]["tsne"][1], edgecolors=np.array([1,0,0,1]), facecolors="None", s=80)
         cursor_lineplot = mplcursors.cursor(line_ax, hover=2)
-        cursor_lineplot.connect("add", lambda sel: sel.annotation.set_text(
-            textwrap.fill(
-                lassoed_df["sent"][sel.index], 20
-            )
-        ))
+        cursor_lineplot.connect("add", lambda sel: sel.annotation.set_text(textwrap.fill(lassoed_df["sent"][sel.index], 20)))
         plt.show()
         return adj_matrix
 
@@ -211,11 +203,7 @@ def main():
     selector1.activate(ax1)
 
     cursor = mplcursors.cursor(ax1, hover=2)
-    cursor.connect("add", lambda sel: sel.annotation.set_text(
-        textwrap.fill(
-            df["sent"][sel.index], 20
-        )
-    ))
+    cursor.connect("add", lambda sel: sel.annotation.set_text(textwrap.fill(df["sent"][sel.index], 20)))
 
     fig.suptitle("Select A cluster...")
 
