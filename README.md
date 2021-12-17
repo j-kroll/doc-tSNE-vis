@@ -1,6 +1,7 @@
 # Sentence embeddings t-SNE cluster visualization
 
 By Julia Kroll
+
 CS765: Data Visualization
 
 ## Installation
