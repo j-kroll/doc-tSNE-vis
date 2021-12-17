@@ -1,6 +1,6 @@
-# Document t-SNE cluster visualization
+# Sentence embeddings t-SNE cluster visualization
 
-## Instructions
+## Installation
 
 ### (Optional) Create and activate a new virtual environment
 
@@ -13,7 +13,7 @@ conda create --name tsne-cluster-vis python=3.9
 conda activate tsne-cluster-vis
 ```
 
-### Install Python 3 libraries:
+### Install Python 3 libraries
 
 ```
 pip3 install -r requirements.txt
@@ -26,16 +26,15 @@ mplcursors
 nltk
 numpy
 pandas
-re
 scipy
-seaborn
-sentence_transformers
-sklearn
-textwrap
+sentence-transformers
+scikit-learn
 
-### Choose input data
+## Usage
 
-Either use one of the provided text files, or use your own text file. Provide the filename in line 166.
+### (Optional) Choose input data
+
+Either use one of the provided text files, or use your own text file. Provide the filename in line 156.
 
 ```
 f = open("{your-text-file}.txt", "r")
@@ -44,12 +43,12 @@ f = open("{your-text-file}.txt", "r")
 ### Run script
 
 ```
-python3 tsne_lasso.py
+python3 compare_clusters.py
 ```
 
 ### Interact with the visualization
 
-1. Lasso the first cluster.
+1. Lasso the first cluster by clicking and dragging to draw a circle around it.
 
 1. Press the "A" key to lock in the first cluster.
 
@@ -57,8 +56,8 @@ python3 tsne_lasso.py
 
 1. Press the "B" key to lock in the second cluster.
 
-1. Press the "F" key to finish the selection.
+1. Press the "F" key to finish the selection and populate the augmenting plots.
 
-1. Examine the visualization plots.
+1. Examine the visualization plots. You can hover over points in all plots to see the sentence text.
 
 1. Press the "X" key to close the visualization.
