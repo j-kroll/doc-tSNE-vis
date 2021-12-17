@@ -4,6 +4,10 @@ By Julia Kroll
 
 CS765: Data Visualization
 
+## Overview
+
+This is an interactive visualization implemented in Python which allows the user to compare the sizes and distances between two clusters in a t-SNE plot of sentence embeddings.
+
 ## Installation
 
 ### (Optional) Create and activate a new virtual environment
