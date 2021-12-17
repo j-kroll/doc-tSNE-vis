@@ -1,7 +1,4 @@
-#pip3 install -qU sentence-transformers bioinfokit mplcursors
-
 from matplotlib import pyplot as plt
-import matplotlib.ticker as ticker
 from matplotlib.widgets import LassoSelector
 from matplotlib.path import Path
 import mplcursors
@@ -9,9 +6,7 @@ import nltk
 from nltk import sent_tokenize, word_tokenize
 import numpy as np
 import pandas as pd
-import re
 from scipy.spatial import distance
-import seaborn as sns
 from sentence_transformers import SentenceTransformer
 from sklearn.manifold import TSNE
 import textwrap
@@ -30,7 +25,7 @@ class SelectFromCollection:
         self.colors = np.array([[0.6, 0.6, 0, 1], [1, 0.4, 1, 1], [0, 0.8, 0.8, 1]])
 
         self.fc[:] = self.colors[0]
-        self.collection.set_facecolors(self.fc) # TODO try out set_sizes() to not interfere with chapter color encoding
+        self.collection.set_facecolors(self.fc)
 
         self.lasso = None
         self.ind = []
@@ -100,7 +95,6 @@ def main():
         cluster_ax.scatter(lassoed_df.iloc[max_uv[1]]["tsne"][0], lassoed_df.iloc[max_uv[1]]["tsne"][1], edgecolors=np.array([1,0,0,1]), facecolors="None", s=80)
         centroid_high_dim = np.mean(lassoed_df["high_dim"], axis=0)
         height = 0
-        # line_ax.scatter([0], [height], c=np.array([1,0,0,1]), s=12) # TODO fix plotting centroid at x=0
         centroid_dists = []
         for i in range(len(lassoed_df)):
             p = lassoed_df.iloc[i]
@@ -175,7 +169,6 @@ def main():
     contents = f.read().replace("\n", " ")
     sent_text = sent_tokenize(contents)
     print("Read and tokenized sentences...")
-    print(sent_text[:3])
     
     model = SentenceTransformer("all-MiniLM-L6-v2")
     sentence_embeddings = model.encode(sent_text)
@@ -183,37 +176,16 @@ def main():
     
     tsne_emb = TSNE(n_components=2, perplexity=30.0, n_iter=1000, verbose=1).fit_transform(sentence_embeddings)
     print("Calculated t-SNE embeddings...")
-    print(len(sent_text))
-    print(sentence_embeddings.shape)
-    print(tsne_emb.shape)
-    
-    colors = sns.color_palette("Paired", 16)
-    print(len(colors), "colors")
-
-    sents_by_chapter = []
-    ch = 0
-    new_ch = False
-    ch_sent = []
+    print("Number of sentences:", len(sent_text))
+    print("Sentence embeddings shape:", sentence_embeddings.shape)
+    print("t-SNE embeddings shape:", tsne_emb.shape)
 
     data = []
     for index, s in enumerate(sent_text):
-        color = colors[ch]
-        label = "Ch. {} (n={})".format(str(ch).zfill(2), str(index).zfill(3))
-        data.append((tsne_emb[index], sentence_embeddings[index], ch, sent_text[index], color, label))
-        new_ch = False
-        if re.match("(.*( ){2,}[IVX]{1,}\.)|(^[IVX]{1,}\.)", s):
-            new_ch = True
-            ch += 1
-    print(ch, "Chapter index")
+        data.append((tsne_emb[index], sentence_embeddings[index], sent_text[index], [0.6, 0.6, 0, 1]))
     print(len(data), "sentence datapoints\n")
 
-    ch_chunks = []
-    idx = 0
-    for c in sents_by_chapter:
-        ch_chunks.append(idx)
-        idx += len(c)
-
-    df = pd.DataFrame(data, columns=["tsne", "high_dim", "ch", "sent", "color", "label"])
+    df = pd.DataFrame(data, columns=["tsne", "high_dim", "sent", "color"])
     print(df.info())
 
     fig = plt.figure()
@@ -231,7 +203,7 @@ def main():
     ax4.get_yaxis().set_visible(False)
     ax5.get_yaxis().set_visible(False)
 
-    sc = ax1.scatter(*zip(*df["tsne"]), c=df.color, s=8) #, label=df.label) # TODO add label/legend
+    sc = ax1.scatter(*zip(*df["tsne"]), c=df.color, s=8)
 
     selector1 = SelectFromCollection(ax1, sc, True)
     selector2 = SelectFromCollection(ax1, sc, False)
